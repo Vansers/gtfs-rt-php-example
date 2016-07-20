@@ -1,11 +1,18 @@
 <?php
+/**
+* @author Serkan Yildiz
+* File to read GTFS-RT data
+*/
+
 require_once 'vendor/autoload.php';
 
 use transit_realtime\FeedMessage;
 date_default_timezone_set('Europe/Brussels');
 const TRIP_UPDATES_FILE = 'http://gtfs.irail.be/nmbs/trip_updates.pb';
 const TOTAL_TRAINS = 3670;
-const LOG_FILE = '/var/www/iRail_gtfs_test/delays.log';
+
+$logPath = dirname(__FILE__) . '/delays.log';
+
 $data = file_get_contents(TRIP_UPDATES_FILE);
 $feed = new FeedMessage();
 $feed->parse($data);
@@ -45,12 +52,12 @@ echo "Total trains with issues: " . $counter . PHP_EOL;
 echo "Percentage of delays: " . round($counter / TOTAL_TRAINS * 100, 2);
 echo PHP_EOL . PHP_EOL;
 
-write_to_log_file($total_delay_minutes . ',' . time());
+write_to_log_file($logPath, $total_delay_minutes . ',' . time());
 
 
-function write_to_log_file($problems_with_trains)
+function write_to_log_file($file, $problems_with_trains)
 {
-  return file_put_contents(LOG_FILE, $problems_with_trains . PHP_EOL, FILE_APPEND);
+  return file_put_contents($file, $problems_with_trains . PHP_EOL, FILE_APPEND);
 }
 
 
@@ -75,7 +82,5 @@ function get_modification_time_url($url)
   }
 
   $timestamp = curl_getinfo($curl, CURLINFO_FILETIME);
-
-  file_put_contents(dirname(__FILE__) . '/delays.log', $timestamp);
   return $timestamp;
 }
