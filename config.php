@@ -13,4 +13,8 @@ return [
 	* URL to parse with Service Alerts data
 	*/
 	'service_alerts_url'	=> '',
+	/**
+	* Timezone to parse timestamps
+	*/
+	'timezone' => ''
 ];
