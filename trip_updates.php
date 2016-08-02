@@ -13,7 +13,7 @@ use transit_realtime\FeedMessage;
 // set timezone to your zone (settings in config.php)
 date_default_timezone_set($config['timezone']);
 
-$data = file_get_contents($config['trip_updates_url']);
+$data = curl_get_contents($config['trip_updates_url']);
 
 $feed = new FeedMessage();
 $feed->parse($data);
@@ -29,4 +29,20 @@ foreach($entity_list as $entity)
 	$vehicle = $trip_update->getVehicle();
 	$vehicle_id = $vehicle->id;
 	$vehicle_label = $vehicle->label;
+}
+
+/**
+*	File get contents functionality that fetches content with cURL
+* @author Serkan Yildiz
+* @param string $url
+* @return string $output
+*/
+function curl_get_contents($url) {
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	$output = curl_exec($ch);
+	curl_close($ch);
+
+	return $output;
 }
