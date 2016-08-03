@@ -12,23 +12,28 @@ use transit_realtime\FeedMessage;
 
 // set timezone to your zone (settings in config.php)
 date_default_timezone_set($config['timezone']);
+try {
+	$data = curl_get_contents($config['trip_updates_url']);
 
-$data = curl_get_contents($config['trip_updates_url']);
+	$feed = new FeedMessage();
+	$feed->parse($data);
 
-$feed = new FeedMessage();
-$feed->parse($data);
+	$entity_list = $feed->getEntityList();
 
-$entity_list = $feed->getEntityList();
+	foreach($entity_list as $entity)
+	{
+		$trip_update = $entity->getTripUpdate();
+		$delay_time = $trip_update->delay; // in seconds
 
-foreach($entity_list as $entity)
+		$trip_id = $trip_update->trip->trip_id;
+		$vehicle = $trip_update->getVehicle();
+		$vehicle_id = $vehicle->id;
+		$vehicle_label = $vehicle->label;
+	}
+}
+catch(InvalidArgumentException $e)
 {
-	$trip_update = $entity->getTripUpdate();
-	$delay_time = $trip_update->delay; // in seconds
-
-	$trip_id = $trip_update->trip->trip_id;
-	$vehicle = $trip_update->getVehicle();
-	$vehicle_id = $vehicle->id;
-	$vehicle_label = $vehicle->label;
+	exit($e->getMessage());
 }
 
 /**
@@ -38,6 +43,12 @@ foreach($entity_list as $entity)
 * @return string $output
 */
 function curl_get_contents($url) {
+
+	if(filter_var($url, FILTER_VALIDATE_URL) !== true)
+	{
+		throw new InvalidArgumentException('Invalid URL given');
+	}
+
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
